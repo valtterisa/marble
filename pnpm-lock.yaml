@@ -83,7 +83,7 @@ importers:
         version: 4.20260702.1
       vitest:
         specifier: ^3.2.4
-        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(yaml@2.9.0)
+        version: 3.2.7(@types/debug@4.1.13)(@types/node@24.13.3)(jiti@2.7.0)(lightningcss@1.33.0)(supports-color@10.2.2)(tsx@4.23.12)(yaml@2.9.0)
       wrangler:
         specifier: ^4.90.0
         version: 4.123.0(@cloudflare/workers-types@4.20260702.1)(bufferutil@4.1.0)
@@ -398,17 +398,10 @@ importers:
         version: 1.3.1(next@16.3.1(@babel/core@7.29.7(supports-color@10.2.2))(@opentelemetry/api@1.9.0)(@types/node@24.13.3)(babel-plugin-react-compiler@1.0.0)(react-dom@19.2.8(react@19.2.8))(react@19.2.8))(react@19.2.8)
       astro:
         specifier: ^7.2.2
-<<<<<<< HEAD
-        version: 7.2.2(@astrojs/markdown-remark@7.2.2)(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(@upstash/redis@1.38.2)(@vercel/functions@3.9.3(@aws-sdk/credential-provider-web-identity@3.972.75)(ws@8.21.3(bufferutil@4.1.0)))(jiti@2.7.0)(yaml@2.9.0)
+        version: 7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(@upstash/redis@1.38.2)(@vercel/functions@3.9.3(@aws-sdk/credential-provider-web-identity@3.972.75)(ws@8.21.3(bufferutil@4.1.0)))(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0)
       cn:
         specifier: ^0.2.4
         version: 0.2.4
-=======
-        version: 7.2.2(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.1)(@emnapi/runtime@1.11.3)(@types/node@24.13.3)(@upstash/redis@1.38.2)(@vercel/functions@3.9.3(@aws-sdk/credential-provider-web-identity@3.972.75)(ws@8.21.3(bufferutil@4.1.0)))(jiti@2.7.0)(tsx@4.23.12)(yaml@2.9.0)
-      clsx:
-        specifier: ^2.1.1
-        version: 2.1.1
->>>>>>> ab1f3da3411df1de183e16d742b7754b220476aa
       free-astro-components:
         specifier: ^1.2.1
         version: 1.3.0(@types/node@24.13.3)(@upstash/redis@1.38.2)(@vercel/functions@3.9.3(@aws-sdk/credential-provider-web-identity@3.972.75)(ws@8.21.3(bufferutil@4.1.0)))(jiti@2.7.0)(lightningcss@1.33.0)(prettier@3.9.6)(rollup@4.62.4)(supports-color@10.2.2)(tsx@4.23.12)(yaml@2.9.0)
@@ -773,14 +766,10 @@ importers:
         version: 0.7.1
       cmdk:
         specifier: 1.0.0
-<<<<<<< HEAD
-        version: 1.0.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
+        version: 1.0.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@18.3.1(react@19.2.8))(react@19.2.8)
       cn:
         specifier: ^0.2.4
         version: 0.2.4
-=======
-        version: 1.0.0(@types/react-dom@19.2.3(@types/react@19.2.14))(@types/react@19.2.14)(react-dom@18.3.1(react@19.2.8))(react@19.2.8)
->>>>>>> ab1f3da3411df1de183e16d742b7754b220476aa
       date-fns:
         specifier: ^4.1.0
         version: 4.4.0
@@ -804,14 +793,7 @@ importers:
         version: 2.15.4(react-dom@18.3.1(react@19.2.8))(react@19.2.8)
       sonner:
         specifier: ^1.7.1
-<<<<<<< HEAD
-        version: 1.7.4(react-dom@19.2.8(react@19.2.8))(react@19.2.8)
-=======
         version: 1.7.4(react-dom@18.3.1(react@19.2.8))(react@19.2.8)
-      tailwind-merge:
-        specifier: ^3.5.0
-        version: 3.6.0
->>>>>>> ab1f3da3411df1de183e16d742b7754b220476aa
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
