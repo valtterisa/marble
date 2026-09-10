@@ -121,7 +121,6 @@ export const schema = {
   workspaceEventSourceEnum,
   workspaceEventTypeEnum,
   workspace,
-  organization: workspace,
   user,
   session,
   account,
