@@ -1,8 +1,14 @@
-import {
+import type {
+  PlanType as DrizzlePlanType,
+  SubscriptionRecurringInterval as DrizzleSubscriptionRecurringInterval,
+  SubscriptionStatus as DrizzleSubscriptionStatus,
+} from "@marble/drizzle";
+
+export type {
   PlanType,
-  type SubscriptionRecurringInterval,
+  SubscriptionRecurringInterval,
   SubscriptionStatus,
-} from "@marble/db/browser";
+} from "@marble/drizzle";
 
 export function isStalePolarEvent(
   lastPolarEventAt: Date | null | undefined,
@@ -11,33 +17,33 @@ export function isStalePolarEvent(
   return !!lastPolarEventAt && lastPolarEventAt > eventTimestamp;
 }
 
-export function getPlanType(productName: string): PlanType | null {
+export function getPlanType(productName: string): DrizzlePlanType | null {
   const plan = productName.toLowerCase();
   if (/^pro($|[ _-])/.test(plan)) {
-    return PlanType.pro;
+    return "pro";
   }
   if (/^hobby($|[ _-])/.test(plan)) {
-    return PlanType.hobby;
+    return "hobby";
   }
   return null;
 }
 
 export function getSubscriptionStatus(
   polarStatus: string
-): SubscriptionStatus | null {
+): DrizzleSubscriptionStatus | null {
   switch (polarStatus) {
     case "active":
-      return SubscriptionStatus.active;
+      return "active";
     case "trialing":
-      return SubscriptionStatus.trialing;
+      return "trialing";
     case "canceled":
-      return SubscriptionStatus.canceled;
+      return "canceled";
     case "past_due":
     case "incomplete":
     case "unpaid":
-      return SubscriptionStatus.past_due;
+      return "past_due";
     case "incomplete_expired":
-      return SubscriptionStatus.expired;
+      return "expired";
     default:
       return null;
   }
@@ -45,7 +51,7 @@ export function getSubscriptionStatus(
 
 export function getRecurringInterval(
   polarInterval: string | null | undefined
-): SubscriptionRecurringInterval {
+): DrizzleSubscriptionRecurringInterval {
   if (!polarInterval) {
     return "month";
   }
