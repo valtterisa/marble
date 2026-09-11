@@ -1,10 +1,14 @@
 import type {
+  PlanType as DrizzlePlanType,
+  SubscriptionRecurringInterval as DrizzleSubscriptionRecurringInterval,
+  SubscriptionStatus as DrizzleSubscriptionStatus,
+} from "@marble/drizzle";
+
+export type {
   PlanType,
   SubscriptionRecurringInterval,
   SubscriptionStatus,
 } from "@marble/drizzle";
-
-export type { PlanType, SubscriptionRecurringInterval, SubscriptionStatus };
 
 export function isStalePolarEvent(
   lastPolarEventAt: Date | null | undefined,
@@ -13,7 +17,7 @@ export function isStalePolarEvent(
   return !!lastPolarEventAt && lastPolarEventAt > eventTimestamp;
 }
 
-export function getPlanType(productName: string): PlanType | null {
+export function getPlanType(productName: string): DrizzlePlanType | null {
   const plan = productName.toLowerCase();
   if (/^pro($|[ _-])/.test(plan)) {
     return "pro";
@@ -26,7 +30,7 @@ export function getPlanType(productName: string): PlanType | null {
 
 export function getSubscriptionStatus(
   polarStatus: string
-): SubscriptionStatus | null {
+): DrizzleSubscriptionStatus | null {
   switch (polarStatus) {
     case "active":
       return "active";
@@ -47,7 +51,7 @@ export function getSubscriptionStatus(
 
 export function getRecurringInterval(
   polarInterval: string | null | undefined
-): SubscriptionRecurringInterval {
+): DrizzleSubscriptionRecurringInterval {
   if (!polarInterval) {
     return "month";
   }

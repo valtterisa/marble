@@ -1,5 +1,5 @@
+/** biome-ignore-all lint/performance/noBarrelFile: Public package entrypoint. */
 import { neonConfig, Pool } from "@neondatabase/serverless";
-import { createId as createRecordId } from "@paralleldrive/cuid2";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
 import { schema } from "./schema";
@@ -33,7 +33,8 @@ if (process.env.NODE_ENV === "production") {
   db = global.drizzleDb;
 }
 
-export { db, createRecordId };
+export { createId as createRecordId } from "@paralleldrive/cuid2";
+export { db };
 export type { DrizzleDb };
 export type TransactionClient = Parameters<
   Parameters<DrizzleDb["transaction"]>[0]

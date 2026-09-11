@@ -115,20 +115,22 @@ function buildDeliveryConditions(
   }
 
   if (joinEvent && search) {
-    conditions.push(
-      or(
-        ilike(webhookDelivery.id, `%${search}%`),
-        ilike(webhookDelivery.eventId, `%${search}%`),
-        ilike(workspaceEvent.id, `%${search}%`)
-      )!
+    const searchCondition = or(
+      ilike(webhookDelivery.id, `%${search}%`),
+      ilike(webhookDelivery.eventId, `%${search}%`),
+      ilike(workspaceEvent.id, `%${search}%`)
     );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
   } else if (search) {
-    conditions.push(
-      or(
-        ilike(webhookDelivery.id, `%${search}%`),
-        ilike(webhookDelivery.eventId, `%${search}%`)
-      )!
+    const searchCondition = or(
+      ilike(webhookDelivery.id, `%${search}%`),
+      ilike(webhookDelivery.eventId, `%${search}%`)
     );
+    if (searchCondition) {
+      conditions.push(searchCondition);
+    }
   }
 
   return and(...conditions);
