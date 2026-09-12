@@ -1,11 +1,11 @@
-import { db } from "@marble/drizzle";
+import { db } from "@marble/db";
 import {
   author,
   category,
   post as postTable,
   postToAuthor,
   postToTag,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { toPostPayload, withChanges } from "@marble/events";
 import { sanitizeHtml } from "@marble/utils/sanitize";
 

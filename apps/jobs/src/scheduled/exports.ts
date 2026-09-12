@@ -1,4 +1,4 @@
-import { exportJob } from "@marble/drizzle/schema";
+import { exportJob } from "@marble/db/schema";
 import { and, eq, lte } from "drizzle-orm";
 import type { DbClient } from "@/lib/db";
 import type { Env } from "@/types/env";

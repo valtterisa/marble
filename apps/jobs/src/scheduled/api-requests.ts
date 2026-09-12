@@ -1,4 +1,4 @@
-import { usageEvent } from "@marble/drizzle/schema";
+import { usageEvent } from "@marble/db/schema";
 import { and, eq, lt } from "drizzle-orm";
 import {
   API_REQUEST_RETENTION_DAYS,

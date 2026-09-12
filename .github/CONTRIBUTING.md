@@ -55,7 +55,7 @@ This directory contains the source code for all related applications:
 
 Packages contain internal shared modules used across different applications:
 
-- **db**: Prisma schema and client shared between the `api` and `cms` apps
+- **db**: Drizzle schema and database clients shared by the `cms`, `api`, and `jobs` apps
 - **editor**: Tiptap-based rich text editor used in the CMS
 - **email**: Email templates for notifications and transactional emails
 - **parser**: Content parsing utilities
@@ -98,7 +98,7 @@ Packages contain internal shared modules used across different applications:
    cp apps/api/.dev.vars.example apps/api/.dev.vars
    cp apps/cms/.env.example apps/cms/.env
    cp apps/web/.env.example apps/web/.env
-   cp packages/drizzle/.env.example packages/drizzle/.env
+   cp packages/db/.env.example packages/db/.env
    ```
 
    You'll need:
@@ -131,7 +131,7 @@ Packages contain internal shared modules used across different applications:
    - Paste it into the relevant env files:
    - `apps/api/.dev.vars` → `DATABASE_URL=<YOUR_STRING_HERE>`
    - `apps/cms/.env` → `DATABASE_URL=<YOUR_STRING_HERE>`
-   - `packages/drizzle/.env` → `DATABASE_URL=<YOUR_STRING_HERE>`
+   - `packages/db/.env` → `DATABASE_URL=<YOUR_STRING_HERE>`
 
    - Run migrations:
 
@@ -159,7 +159,7 @@ Packages contain internal shared modules used across different applications:
    If you’re using the local Docker DB, set `DATABASE_URL` in these env files:
    - `apps/api/.dev.vars`
    - `apps/cms/.env`
-   - `packages/drizzle/.env`
+   - `packages/db/.env`
 
    Example:
    ```bash

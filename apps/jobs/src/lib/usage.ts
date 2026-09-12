@@ -1,5 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import { isPgUniqueViolation } from "@marble/drizzle/pg-errors";
+import { createRecordId } from "@marble/db/id";
+import { isPgUniqueViolation } from "@marble/db/pg-errors";
 import {
   member,
   subscription,
@@ -8,7 +8,7 @@ import {
   user,
   workspace,
   workspaceNotificationPreferences,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { sendUsageLimitEmail } from "@marble/email";
 import { getWorkspacePlan, PLAN_LIMITS } from "@marble/utils";
 import {

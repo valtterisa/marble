@@ -1,5 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import { workspaceEvent } from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { workspaceEvent } from "@marble/db/schema";
 import type { EventMessage } from "@marble/events";
 import type { DbClient } from "@/lib/db";
 import type { JsonObject } from "@/validations/json";

@@ -1,8 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import {
-  webhookDelivery,
-  webhookDeliveryAttempt,
-} from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { webhookDelivery, webhookDeliveryAttempt } from "@marble/db/schema";
 import { buildWebhookPayload, serializeEventType } from "@marble/events";
 import { WEBHOOK_DELIVERY_TIMEOUT_MS } from "@/lib/constants";
 import type { DbClient } from "@/lib/db";

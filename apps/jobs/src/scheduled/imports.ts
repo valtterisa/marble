@@ -1,4 +1,4 @@
-import { importJob } from "@marble/drizzle/schema";
+import { importJob } from "@marble/db/schema";
 import { and, eq, inArray, lt } from "drizzle-orm";
 import {
   IMPORT_JOB_RETENTION_DAYS,

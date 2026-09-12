@@ -1,10 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import {
-  importItem,
-  importJob,
-  post,
-  postToAuthor,
-} from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { importItem, importJob, post, postToAuthor } from "@marble/db/schema";
 import { markdownToHtml, markdownToTiptap } from "@marble/parser/markdown";
 import { sanitizeHtml } from "@marble/utils/sanitize";
 import { and, eq } from "drizzle-orm";

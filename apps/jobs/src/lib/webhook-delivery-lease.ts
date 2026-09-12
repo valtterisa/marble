@@ -1,4 +1,4 @@
-import { webhookDelivery } from "@marble/drizzle/schema";
+import { webhookDelivery } from "@marble/db/schema";
 import { and, eq, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { WEBHOOK_DELIVERY_LEASE_MS } from "./constants";
 import type { DbClient } from "./db";

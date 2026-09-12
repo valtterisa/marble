@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono } from "@hono/zod-openapi";
-import { createRecordId } from "@marble/drizzle/id";
-import { media as mediaTable } from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { media as mediaTable } from "@marble/db/schema";
 import { toMediaPayload, withChanges } from "@marble/events";
 import { and, asc, count, desc, eq, ilike, or } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";

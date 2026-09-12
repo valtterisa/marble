@@ -1,4 +1,4 @@
-import { apiKey } from "@marble/drizzle/schema";
+import { apiKey } from "@marble/db/schema";
 import { eq, sql } from "drizzle-orm";
 import type { MiddlewareHandler } from "hono";
 import { hashApiKey } from "@/lib/crypto";

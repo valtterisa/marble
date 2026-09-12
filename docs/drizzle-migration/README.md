@@ -11,15 +11,15 @@ Sequenced plans for moving Marble off Prisma onto Drizzle **on the same Neon Pos
 
 | PR | Doc | Scope | Status |
 | --- | --- | --- | --- |
-| **1** | [`PR-1-cms.md`](./PR-1-cms.md) | Foundation (`@marble/drizzle`) + **`apps/cms`** | Done (merged) |
+| **1** | [`PR-1-cms.md`](./PR-1-cms.md) | Drizzle foundation + **`apps/cms`** | Done (merged) |
 | **2** | [`PR-2-api-jobs.md`](./PR-2-api-jobs.md) | **`apps/api` + `apps/jobs`**: Hyperdrive → Drizzle `pg` | Done |
-| **3** | [`PR-3-remove-prisma.md`](./PR-3-remove-prisma.md) | Drizzle Kit owns schema; remove `@marble/db` / Prisma | Done |
+| **3** | [`PR-3-remove-prisma.md`](./PR-3-remove-prisma.md) | Drizzle Kit owns schema; replace Prisma in `@marble/db` | Done |
 
 ### Current ownership
 
-- **Schema / migrations:** Drizzle Kit in [`packages/drizzle`](../../packages/drizzle) (`pnpm db:generate`, `pnpm db:migrate`, `pnpm db:studio`)
-- **CMS runtime:** neon-serverless WebSocket via `@marble/drizzle`
-- **API / jobs runtime:** Hyperdrive + `pg.Client` via `@marble/drizzle/hyperdrive`
+- **Schema / migrations:** Drizzle Kit in [`packages/db`](../../packages/db) (`pnpm db:generate`, `pnpm db:migrate`, `pnpm db:studio`)
+- **CMS runtime:** neon-serverless WebSocket via `@marble/db`
+- **API / jobs runtime:** Hyperdrive + `pg.Client` via `@marble/db/hyperdrive`
 - **Archived Prisma history:** [`archived-prisma/`](./archived-prisma/)
 
 ### Sequencing

@@ -1,12 +1,12 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { createRecordId } from "@marble/drizzle/id";
+import { createRecordId } from "@marble/db/id";
 import {
   authorSocial,
   author as authorTable,
   post,
   postToAuthor,
   subscription,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { toAuthorPayload, withChanges } from "@marble/events";
 import { getWorkspacePlan, PLAN_LIMITS } from "@marble/utils";
 import {

@@ -1,4 +1,4 @@
-import { workspace } from "@marble/drizzle/schema";
+import { workspace } from "@marble/db/schema";
 import { eq } from "drizzle-orm";
 import type { Context, MiddlewareHandler, Next } from "hono";
 

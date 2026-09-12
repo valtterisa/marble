@@ -1,5 +1,5 @@
 {
-  "name": "@marble/drizzle",
+  "name": "@marble/db",
   "version": "0.0.0",
   "type": "module",
   "exports": {

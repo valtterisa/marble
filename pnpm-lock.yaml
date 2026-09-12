@@ -41,9 +41,9 @@ importers:
       '@hono/zod-validator':
         specifier: ^0.7.6
         version: 0.7.6(hono@4.13.2)(zod@4.4.3)
-      '@marble/drizzle':
+      '@marble/db':
         specifier: workspace:*
-        version: link:../../packages/drizzle
+        version: link:../../packages/db
       '@marble/email':
         specifier: workspace:*
         version: link:../../packages/email
@@ -123,9 +123,9 @@ importers:
       '@hugeicons/react':
         specifier: ^1.1.4
         version: 1.1.9(react@19.2.8)
-      '@marble/drizzle':
+      '@marble/db':
         specifier: workspace:*
-        version: link:../../packages/drizzle
+        version: link:../../packages/db
       '@marble/editor':
         specifier: workspace:*
         version: link:../../packages/editor
@@ -313,9 +313,9 @@ importers:
 
   apps/jobs:
     dependencies:
-      '@marble/drizzle':
+      '@marble/db':
         specifier: workspace:*
-        version: link:../../packages/drizzle
+        version: link:../../packages/db
       '@marble/email':
         specifier: workspace:*
         version: link:../../packages/email
@@ -425,7 +425,7 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
-  packages/drizzle:
+  packages/db:
     dependencies:
       '@neondatabase/serverless':
         specifier: ^1.0.1

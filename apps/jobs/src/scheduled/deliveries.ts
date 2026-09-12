@@ -1,4 +1,4 @@
-import { webhookDelivery } from "@marble/drizzle/schema";
+import { webhookDelivery } from "@marble/db/schema";
 import { and, inArray, lt } from "drizzle-orm";
 import {
   MILLISECONDS_IN_DAY,

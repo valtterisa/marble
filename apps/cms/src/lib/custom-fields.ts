@@ -1,6 +1,6 @@
-import type { TransactionClient } from "@marble/drizzle";
-import { createRecordId, db } from "@marble/drizzle";
-import { field, fieldOption, fieldValue } from "@marble/drizzle/schema";
+import type { TransactionClient } from "@marble/db";
+import { createRecordId, db } from "@marble/db";
+import { field, fieldOption, fieldValue } from "@marble/db/schema";
 import { sanitizeRichTextHtml } from "@marble/utils/sanitize";
 import { and, asc, eq } from "drizzle-orm";
 import { z } from "zod";

@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { createRecordId } from "@marble/drizzle/id";
+import { createRecordId } from "@marble/db/id";
 import {
   author,
   category,
@@ -10,7 +10,7 @@ import {
   postToAuthor,
   postToTag,
   tag,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { toPostPayload, withChanges } from "@marble/events";
 import {
   EMPTY_TIPTAP_DOC,

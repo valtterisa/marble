@@ -1,7 +1,7 @@
 import {
   createHyperdriveClient,
   type HyperdriveDb,
-} from "@marble/drizzle/hyperdrive";
+} from "@marble/db/hyperdrive";
 import { createMiddleware } from "hono/factory";
 import type { Env } from "@/types/env";
 
@@ -9,8 +9,8 @@ export type DbClient = HyperdriveDb;
 
 /**
  * Create a Drizzle client for Cloudflare Workers via Hyperdrive.
- * Uses a per-request pg.Client (see `@marble/drizzle/hyperdrive`); CMS uses
- * the neon-serverless WebSocket client from `@marble/drizzle`.
+ * Uses a per-request pg.Client (see `@marble/db/hyperdrive`); CMS uses
+ * the neon-serverless WebSocket client from `@marble/db`.
  */
 export async function createDbClient(env: Env): Promise<DbClient> {
   if (!env.HYPERDRIVE?.connectionString) {

@@ -1,9 +1,9 @@
-import { createRecordId } from "@marble/drizzle/id";
+import { createRecordId } from "@marble/db/id";
 import {
   webhookDelivery,
   webhookEndpoint,
   workspaceEvent,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { and, arrayContains, eq } from "drizzle-orm";
 import { createDbClient } from "@/lib/db";
 import type { Env, EventMessage } from "@/types/env";

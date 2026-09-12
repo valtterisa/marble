@@ -1,6 +1,6 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { createRecordId } from "@marble/drizzle/id";
-import { category as categoryTable, post } from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { category as categoryTable, post } from "@marble/db/schema";
 import { toCategoryPayload, withChanges } from "@marble/events";
 import { and, asc, count, eq, ne, or, sql } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";

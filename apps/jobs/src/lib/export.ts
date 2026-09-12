@@ -9,7 +9,7 @@ import {
   organization,
   post,
   tag,
-} from "@marble/drizzle/schema";
+} from "@marble/db/schema";
 import { sendExportReadyEmail } from "@marble/email";
 import { and, asc, eq, sql } from "drizzle-orm";
 import { Resend } from "resend";

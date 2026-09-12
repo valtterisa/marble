@@ -1,5 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import { usageEvent } from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { usageEvent } from "@marble/db/schema";
 import { imageSize } from "image-size";
 import type { DbClient } from "@/lib/db";
 import { DEFAULT_CDN_URL } from "./constants";

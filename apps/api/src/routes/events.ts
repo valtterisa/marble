@@ -1,5 +1,5 @@
-import { createRecordId } from "@marble/drizzle/id";
-import { workspace, workspaceEvent } from "@marble/drizzle/schema";
+import { createRecordId } from "@marble/db/id";
+import { workspace, workspaceEvent } from "@marble/db/schema";
 import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { DbClient } from "@/lib/db";

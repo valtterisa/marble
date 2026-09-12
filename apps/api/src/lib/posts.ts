@@ -1,6 +1,6 @@
 import { z } from "@hono/zod-openapi";
-import type { HyperdriveDb } from "@marble/drizzle/hyperdrive";
-import { category, post, postToTag, tag } from "@marble/drizzle/schema";
+import type { HyperdriveDb } from "@marble/db/hyperdrive";
+import { category, post, postToTag, tag } from "@marble/db/schema";
 import {
   and,
   eq,
