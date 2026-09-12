@@ -3,7 +3,7 @@ import { webhookDelivery, webhookDeliveryAttempt } from "@marble/db/schema";
 import { buildWebhookPayload, serializeEventType } from "@marble/events";
 import { WEBHOOK_DELIVERY_TIMEOUT_MS } from "@/lib/constants";
 import type { DbClient } from "@/lib/db";
-import { createDbClient } from "@/lib/db";
+import { closeDbClient, createDbClient } from "@/lib/db";
 import { buildWebhookRequestBody } from "@/lib/formats";
 import { signPayload } from "@/lib/signing";
 import {
@@ -24,19 +24,23 @@ export async function handleWebhookDeliveryQueue(
   env: Env
 ) {
   const db = await createDbClient(env);
-  for (const message of batch.messages) {
-    const { deliveryId } = message.body;
+  try {
+    for (const message of batch.messages) {
+      const { deliveryId } = message.body;
 
-    try {
-      await processDelivery(db, env, deliveryId);
-      message.ack();
-    } catch (error) {
-      console.error(
-        `[Delivery] Failed to deliver ${deliveryId}:`,
-        error instanceof Error ? error.message : error
-      );
-      message.retry();
+      try {
+        await processDelivery(db, env, deliveryId);
+        message.ack();
+      } catch (error) {
+        console.error(
+          `[Delivery] Failed to deliver ${deliveryId}:`,
+          error instanceof Error ? error.message : error
+        );
+        message.retry();
+      }
     }
+  } finally {
+    await closeDbClient(db);
   }
 }
 

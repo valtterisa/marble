@@ -6,9 +6,9 @@ import {
   fieldOption,
   media as mediaTable,
   member,
-  organization,
   post,
   tag,
+  workspace as workspaceTable,
 } from "@marble/db/schema";
 import { sendExportReadyEmail } from "@marble/email";
 import { and, asc, eq, sql } from "drizzle-orm";
@@ -70,8 +70,8 @@ async function buildExportFiles(db: DbClient, workspaceId: string) {
     mediaItems,
     fields,
   ] = await Promise.all([
-    db.query.organization.findFirst({
-      where: eq(organization.id, workspaceId),
+    db.query.workspace.findFirst({
+      where: eq(workspaceTable.id, workspaceId),
       columns: {
         id: true,
         name: true,

@@ -1,5 +1,5 @@
 import type { Context, MiddlewareHandler, Next } from "hono";
-import { createDbClient } from "@/lib/db";
+import { closeDbClient, createDbClient } from "@/lib/db";
 import { checkApiUsage, type UsageCheckResult } from "@/lib/usage";
 import { runAnalyticsTask } from "./analytics";
 
@@ -58,17 +58,21 @@ export const legacyAnalytics = (): MiddlewareHandler => {
     c.executionCtx?.waitUntil(
       (async () => {
         const bgDb = await createDbClient(c.env);
-        await runAnalyticsTask({
-          db: bgDb,
-          workspaceId,
-          endpoint,
-          method,
-          status,
-          usageResult,
-          resendApiKey: RESEND_API_KEY,
-          polarAccessToken: POLAR_ACCESS_TOKEN,
-          environment: ENVIRONMENT,
-        });
+        try {
+          await runAnalyticsTask({
+            db: bgDb,
+            workspaceId,
+            endpoint,
+            method,
+            status,
+            usageResult,
+            resendApiKey: RESEND_API_KEY,
+            polarAccessToken: POLAR_ACCESS_TOKEN,
+            environment: ENVIRONMENT,
+          });
+        } finally {
+          await closeDbClient(bgDb);
+        }
       })()
     );
   };

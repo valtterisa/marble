@@ -2,7 +2,7 @@ import { apiKey } from "@marble/db/schema";
 import { eq, sql } from "drizzle-orm";
 import type { MiddlewareHandler } from "hono";
 import { hashApiKey } from "@/lib/crypto";
-import { createDbClient } from "@/lib/db";
+import { closeDbClient, createDbClient } from "@/lib/db";
 import type { ApiKeyApp } from "@/types/env";
 
 /**
@@ -88,13 +88,17 @@ export const keyAuthorization =
       c.executionCtx?.waitUntil(
         (async () => {
           const bgDb = await createDbClient(c.env);
-          await bgDb
-            .update(apiKey)
-            .set({
-              lastUsed: new Date(),
-              requestCount: sql`${apiKey.requestCount} + 1`,
-            })
-            .where(eq(apiKey.id, key.id));
+          try {
+            await bgDb
+              .update(apiKey)
+              .set({
+                lastUsed: new Date(),
+                requestCount: sql`${apiKey.requestCount} + 1`,
+              })
+              .where(eq(apiKey.id, key.id));
+          } finally {
+            await closeDbClient(bgDb);
+          }
         })()
       );
 

@@ -2,7 +2,7 @@ import { createRecordId } from "@marble/db/id";
 import { member, usageEvent, workspace } from "@marble/db/schema";
 import { eq } from "drizzle-orm";
 import type { Context, MiddlewareHandler } from "hono";
-import { createDbClient, type DbClient } from "@/lib/db";
+import { closeDbClient, createDbClient, type DbClient } from "@/lib/db";
 import { createPolarClient } from "@/lib/polar";
 import {
   checkApiUsage,
@@ -185,18 +185,22 @@ export const analytics = (): MiddlewareHandler<ApiKeyApp> => {
     c.executionCtx?.waitUntil(
       (async () => {
         const bgDb = await createDbClient(c.env);
-        await runAnalyticsTask({
-          db: bgDb,
-          workspaceId,
-          endpoint,
-          method,
-          status,
-          usageResult,
-          resendApiKey: RESEND_API_KEY,
-          polarAccessToken: POLAR_ACCESS_TOKEN,
-          environment: ENVIRONMENT,
-          apiKeyType,
-        });
+        try {
+          await runAnalyticsTask({
+            db: bgDb,
+            workspaceId,
+            endpoint,
+            method,
+            status,
+            usageResult,
+            resendApiKey: RESEND_API_KEY,
+            polarAccessToken: POLAR_ACCESS_TOKEN,
+            environment: ENVIRONMENT,
+            apiKeyType,
+          });
+        } finally {
+          await closeDbClient(bgDb);
+        }
       })()
     );
   };
