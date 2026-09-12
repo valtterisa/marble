@@ -19,7 +19,7 @@ import {
   normalizePostContent,
 } from "@marble/parser";
 import { sanitizeHtml } from "@marble/utils/sanitize";
-import { and, asc, count, desc, eq, inArray, ne, or } from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ne, or, sql } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";
 import type { DbClient } from "@/lib/db";
 import { emitEvent } from "@/lib/events";
@@ -162,36 +162,43 @@ async function writePostCustomFieldValues(
   writes: Array<{ fieldId: string; value: string | null }>
 ) {
   const now = new Date();
+  const fieldIdsToDelete = writes
+    .filter((write) => write.value === null)
+    .map((write) => write.fieldId);
+  const valuesToUpsert = writes.filter(
+    (write): write is { fieldId: string; value: string } => write.value !== null
+  );
 
-  for (const { fieldId, value } of writes) {
-    if (value === null) {
-      await tx
-        .delete(fieldValue)
-        .where(
-          and(
-            eq(fieldValue.postId, postId),
-            eq(fieldValue.fieldId, fieldId),
-            eq(fieldValue.workspaceId, workspaceId)
-          )
-        );
-      continue;
-    }
+  if (fieldIdsToDelete.length > 0) {
+    await tx
+      .delete(fieldValue)
+      .where(
+        and(
+          eq(fieldValue.postId, postId),
+          inArray(fieldValue.fieldId, fieldIdsToDelete),
+          eq(fieldValue.workspaceId, workspaceId)
+        )
+      );
+  }
 
+  if (valuesToUpsert.length > 0) {
     await tx
       .insert(fieldValue)
-      .values({
-        id: createRecordId(),
-        postId,
-        fieldId,
-        workspaceId,
-        value,
-        updatedAt: now,
-      })
+      .values(
+        valuesToUpsert.map(({ fieldId, value }) => ({
+          id: createRecordId(),
+          postId,
+          fieldId,
+          workspaceId,
+          value,
+          updatedAt: now,
+        }))
+      )
       .onConflictDoUpdate({
         target: [fieldValue.postId, fieldValue.fieldId],
         set: {
           workspaceId,
-          value,
+          value: sql.raw(`excluded."${fieldValue.value.name}"`),
           updatedAt: now,
         },
       });
@@ -656,7 +663,9 @@ posts.openapi(createPostRoute, async (c) => {
       }
 
       const validAuthorIdSet = new Set(validAuthorIds);
-      authorIds = body.authors.filter((id) => validAuthorIdSet.has(id));
+      authorIds = Array.from(
+        new Set(body.authors.filter((id) => validAuthorIdSet.has(id)))
+      );
     } else {
       // Fallback: use the first workspace author
       const firstAuthor = await db.query.author.findFirst({
@@ -1054,7 +1063,9 @@ posts.openapi(updatePostRoute, async (c) => {
       }
 
       const validAuthorIdSet = new Set(validAuthorIds);
-      authorIds = body.authors.filter((id) => validAuthorIdSet.has(id));
+      authorIds = Array.from(
+        new Set(body.authors.filter((id) => validAuthorIdSet.has(id)))
+      );
       primaryAuthorId = authorIds[0];
     }
 
