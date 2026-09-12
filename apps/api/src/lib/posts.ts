@@ -1,10 +1,6 @@
-import {
-  category,
-  post,
-  postToTag,
-  tag,
-} from "@marble/drizzle/schema";
+import { z } from "@hono/zod-openapi";
 import type { HyperdriveDb } from "@marble/drizzle/hyperdrive";
+import { category, post, postToTag, tag } from "@marble/drizzle/schema";
 import {
   and,
   eq,
@@ -13,10 +9,9 @@ import {
   inArray,
   not,
   or,
-  sql,
   type SQL,
+  sql,
 } from "drizzle-orm";
-import { z } from "@hono/zod-openapi";
 
 export function buildStatusFilter(
   status: "published" | "draft" | "all"
@@ -91,9 +86,7 @@ export function buildPostsListWhere(
           .select({ one: sql`1` })
           .from(postToTag)
           .innerJoin(tag, eq(postToTag.b, tag.id))
-          .where(
-            and(eq(postToTag.a, post.id), inArray(tag.slug, filters.tags))
-          )
+          .where(and(eq(postToTag.a, post.id), inArray(tag.slug, filters.tags)))
       )
     );
   }

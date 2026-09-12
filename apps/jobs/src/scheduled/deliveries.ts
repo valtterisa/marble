@@ -24,12 +24,11 @@ export async function cleanupOldWebhookDeliveries({
         lt(webhookDelivery.createdAt, cutoff),
         inArray(webhookDelivery.status, ["success", "failed"])
       )
-    )
-    .returning({ id: webhookDelivery.id });
+    );
 
-  if (deleted.length > 0) {
+  if (deleted.rowCount) {
     console.log(
-      `[Cleanup] Deleted ${deleted.length} old webhook delivery row(s)`
+      `[Cleanup] Deleted ${deleted.rowCount} old webhook delivery row(s)`
     );
   }
 }

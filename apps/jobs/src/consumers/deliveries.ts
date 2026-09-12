@@ -1,9 +1,9 @@
-import { buildWebhookPayload, serializeEventType } from "@marble/events";
-import {
-  webhookDeliveryAttempt,
-  webhookDelivery,
-} from "@marble/drizzle/schema";
 import { createRecordId } from "@marble/drizzle/id";
+import {
+  webhookDelivery,
+  webhookDeliveryAttempt,
+} from "@marble/drizzle/schema";
+import { buildWebhookPayload, serializeEventType } from "@marble/events";
 import { WEBHOOK_DELIVERY_TIMEOUT_MS } from "@/lib/constants";
 import type { DbClient } from "@/lib/db";
 import { createDbClient } from "@/lib/db";
@@ -43,11 +43,7 @@ export async function handleWebhookDeliveryQueue(
   }
 }
 
-async function processDelivery(
-  db: DbClient,
-  env: Env,
-  deliveryId: string
-) {
+async function processDelivery(db: DbClient, env: Env, deliveryId: string) {
   let lease = await claimWebhookDeliveryAttempt(db, deliveryId);
 
   if (!lease) {

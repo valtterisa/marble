@@ -3,8 +3,8 @@ import { createRecordId } from "@marble/drizzle/id";
 import {
   author,
   category,
-  field as fieldTable,
   fieldOption,
+  field as fieldTable,
   fieldValue,
   post as postTable,
   postToAuthor,
@@ -19,17 +19,9 @@ import {
   normalizePostContent,
 } from "@marble/parser";
 import { sanitizeHtml } from "@marble/utils/sanitize";
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  inArray,
-  ne,
-  or,
-} from "drizzle-orm";
+import { and, asc, count, desc, eq, inArray, ne, or } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";
+import type { DbClient } from "@/lib/db";
 import { emitEvent } from "@/lib/events";
 import { resolveCustomFieldValuesByKey } from "@/lib/fields";
 import {
@@ -59,7 +51,6 @@ import {
   UpdatePostResponseSchema,
 } from "@/schemas/posts";
 import type { ApiKeyApp } from "@/types/env";
-import type { DbClient } from "@/lib/db";
 
 const posts = new OpenAPIHono<ApiKeyApp>();
 
@@ -401,21 +392,36 @@ posts.openapi(listPostsRoute, async (c) => {
     const postsToSkip = (page - 1) * limit;
     const prevPage = page > 1 ? page - 1 : null;
     const nextPage = page < totalPages ? page + 1 : null;
+    const postOrderBy =
+      order === "asc"
+        ? [asc(postTable.publishedAt), asc(postTable.id)]
+        : [desc(postTable.publishedAt), desc(postTable.id)];
 
     const [postsData, workspaceFields] = await Promise.all([
-      cache.getOrSet(listCacheKey, () =>
-        db.query.post.findMany({
-          where,
-          orderBy:
-            order === "asc"
-              ? asc(postTable.publishedAt)
-              : desc(postTable.publishedAt),
+      cache.getOrSet(listCacheKey, async () => {
+        const postIds = await db
+          .select({ id: postTable.id })
+          .from(postTable)
+          .where(where)
+          .orderBy(...postOrderBy)
+          .limit(limit)
+          .offset(postsToSkip);
+
+        if (postIds.length === 0) {
+          return [];
+        }
+
+        return db.query.post.findMany({
+          where: inArray(
+            postTable.id,
+            postIds.map(({ id }) => id)
+          ),
+          orderBy: postOrderBy,
           limit,
-          offset: postsToSkip,
           columns: postListColumns,
           with: postListWith,
-        })
-      ),
+        });
+      }),
       db.query.field.findMany({
         where: eq(fieldTable.workspaceId, workspaceId),
         columns: {
@@ -1135,19 +1141,38 @@ posts.openapi(updatePostRoute, async (c) => {
     if (primaryAuthorId) {
       updateData.primaryAuthorId = primaryAuthorId;
     }
+
+    const shouldTouchPost =
+      Object.keys(updateData).length > 0 ||
+      validTagIds !== undefined ||
+      authorIds !== undefined ||
+      customFieldWrites !== undefined;
+
+    if (!shouldTouchPost) {
+      return c.json(
+        {
+          post: {
+            id: existingPost.id,
+            slug: existingPost.slug,
+            title: existingPost.title,
+            status: existingPost.status,
+            featured: existingPost.featured,
+            publishedAt: existingPost.publishedAt,
+            updatedAt: existingPost.updatedAt,
+          },
+        },
+        200 as const
+      );
+    }
+
     const postUpdated = await db.transaction(async (tx) => {
       const now = new Date();
-      const shouldTouchPost =
-        Object.keys(updateData).length > 0 ||
-        validTagIds !== undefined ||
-        authorIds !== undefined ||
-        customFieldWrites !== undefined;
 
       const [updatedPost] = await tx
         .update(postTable)
         .set({
           ...updateData,
-          ...(shouldTouchPost ? { updatedAt: now } : {}),
+          updatedAt: now,
         })
         .where(eq(postTable.id, existingPost.id))
         .returning({
@@ -1165,9 +1190,7 @@ posts.openapi(updatePostRoute, async (c) => {
       }
 
       if (validTagIds !== undefined) {
-        await tx
-          .delete(postToTag)
-          .where(eq(postToTag.a, existingPost.id));
+        await tx.delete(postToTag).where(eq(postToTag.a, existingPost.id));
 
         if (validTagIds.length > 0) {
           await tx.insert(postToTag).values(

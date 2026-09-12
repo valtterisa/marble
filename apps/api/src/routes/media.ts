@@ -230,7 +230,10 @@ media.openapi(listMediaRoute, async (c) => {
     const query = c.req.valid("query");
     const { limit, page, order, type } = query;
     const skip = (page - 1) * limit;
-    const where = buildMediaListWhere(workspaceId, { type, query: query.query });
+    const where = buildMediaListWhere(workspaceId, {
+      type,
+      query: query.query,
+    });
 
     const key = cacheKey(workspaceId, "media", "list", hashQueryParams(query));
 
@@ -301,7 +304,10 @@ media.openapi(getMediaRoute, async (c) => {
     const { id } = c.req.valid("param");
 
     const item = await db.query.media.findFirst({
-      where: and(eq(mediaTable.id, id), eq(mediaTable.workspaceId, workspaceId)),
+      where: and(
+        eq(mediaTable.id, id),
+        eq(mediaTable.workspaceId, workspaceId)
+      ),
     });
 
     if (!item) {
@@ -336,7 +342,10 @@ media.openapi(updateMediaRoute, async (c) => {
     const body = c.req.valid("json");
 
     const existing = await db.query.media.findFirst({
-      where: and(eq(mediaTable.id, id), eq(mediaTable.workspaceId, workspaceId)),
+      where: and(
+        eq(mediaTable.id, id),
+        eq(mediaTable.workspaceId, workspaceId)
+      ),
     });
 
     if (!existing) {
@@ -406,7 +415,10 @@ media.openapi(deleteMediaRoute, async (c) => {
     const { id } = c.req.valid("param");
 
     const existing = await db.query.media.findFirst({
-      where: and(eq(mediaTable.id, id), eq(mediaTable.workspaceId, workspaceId)),
+      where: and(
+        eq(mediaTable.id, id),
+        eq(mediaTable.workspaceId, workspaceId)
+      ),
     });
 
     if (!existing) {

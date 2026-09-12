@@ -2,7 +2,6 @@
 import { neonConfig, Pool } from "@neondatabase/serverless";
 import { drizzle } from "drizzle-orm/neon-serverless";
 import ws from "ws";
-import { createRecordId } from "./id";
 import { schema } from "./schema";
 
 neonConfig.webSocketConstructor = ws;
@@ -34,7 +33,8 @@ if (process.env.NODE_ENV === "production") {
   db = global.drizzleDb;
 }
 
-export { db, createRecordId };
+export { db };
+export { createRecordId } from "./id";
 export type { DrizzleDb };
 export type TransactionClient = Parameters<
   Parameters<DrizzleDb["transaction"]>[0]

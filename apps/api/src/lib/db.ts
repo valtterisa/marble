@@ -21,9 +21,9 @@ export async function createDbClient(env: Env): Promise<DbClient> {
   return createHyperdriveClient(env.HYPERDRIVE.connectionString);
 }
 
-export type DbVariables = {
+export interface DbVariables {
   db: DbClient;
-};
+}
 
 export const dbMiddleware = createMiddleware<{
   Bindings: Env;

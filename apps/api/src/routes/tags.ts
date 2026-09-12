@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { createRecordId } from "@marble/drizzle/id";
 import { post, postToTag, tag as tagTable } from "@marble/drizzle/schema";
 import { toTagPayload, withChanges } from "@marble/events";
-import { and, count, eq, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ne, or, sql } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";
 import { emitEvent } from "@/lib/events";
 import { requireWorkspaceId } from "@/lib/workspace";
@@ -202,6 +202,7 @@ tags.openapi(listTagsRoute, async (c) => {
       )
       .where(eq(tagTable.workspaceId, workspaceId))
       .groupBy(tagTable.id)
+      .orderBy(asc(tagTable.name), asc(tagTable.id))
       .limit(limit)
       .offset(tagsToSkip)
   );
@@ -576,7 +577,20 @@ tags.openapi(deleteTagRoute, async (c) => {
       );
     }
 
-    await db.delete(tagTable).where(eq(tagTable.id, existingTag.id));
+    const deletedTags = await db
+      .delete(tagTable)
+      .where(eq(tagTable.id, existingTag.id))
+      .returning({ id: tagTable.id });
+
+    if (deletedTags.length === 0) {
+      return c.json(
+        {
+          error: "Tag not found",
+          message: "The requested tag does not exist",
+        },
+        404 as const
+      );
+    }
 
     c.executionCtx.waitUntil(cache.invalidateResource(workspaceId, "tags"));
     c.executionCtx.waitUntil(cache.invalidateResource(workspaceId, "posts"));

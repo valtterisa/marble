@@ -19,7 +19,7 @@ export const keyAuthorization =
     const authHeader = c.req.header("Authorization");
     if (authHeader) {
       if (authHeader.startsWith("Bearer ")) {
-        apiKeyValue = authHeader.substring(7);
+        apiKeyValue = authHeader.slice(7);
       } else {
         apiKeyValue = authHeader;
       }

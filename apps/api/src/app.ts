@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { trimTrailingSlash } from "hono/trailing-slash";
 import { FRAMER_PLUGIN_PATTERN, ROUTES } from "./lib/constants";
+import type { DbClient } from "./lib/db";
 import { dbMiddleware } from "./lib/db";
 import { restrictLegacyPostStatus } from "./lib/legacy-posts";
 import { analytics } from "./middleware/analytics";
@@ -23,9 +24,11 @@ import postsRoutes from "./routes/posts";
 import tagsRoutes from "./routes/tags";
 import tasksRoutes from "./routes/tasks";
 import type { ApiKeyApp, Env } from "./types/env";
-import type { DbClient } from "./lib/db";
 
-type AppEnv = { Bindings: Env; Variables: { db: DbClient } };
+interface AppEnv {
+  Bindings: Env;
+  Variables: { db: DbClient };
+}
 
 const app = new OpenAPIHono<AppEnv>();
 

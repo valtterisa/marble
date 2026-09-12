@@ -16,10 +16,7 @@ export async function cleanupExpiredExports({
 
   while (true) {
     const expiredExports = await db.query.exportJob.findMany({
-      where: and(
-        eq(exportJob.status, "ready"),
-        lte(exportJob.expiresAt, now)
-      ),
+      where: and(eq(exportJob.status, "ready"), lte(exportJob.expiresAt, now)),
       columns: {
         id: true,
         storageKey: true,

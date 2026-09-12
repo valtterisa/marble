@@ -21,10 +21,11 @@ export async function cleanupStaleApiRequests({
     .delete(usageEvent)
     .where(
       and(eq(usageEvent.type, "api_request"), lt(usageEvent.createdAt, cutoff))
-    )
-    .returning({ id: usageEvent.id });
+    );
 
-  if (deleted.length > 0) {
-    console.log(`[Cleanup] Deleted ${deleted.length} stale API request row(s)`);
+  if (deleted.rowCount) {
+    console.log(
+      `[Cleanup] Deleted ${deleted.rowCount} stale API request row(s)`
+    );
   }
 }

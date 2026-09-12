@@ -2,7 +2,7 @@ import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { createRecordId } from "@marble/drizzle/id";
 import { category as categoryTable, post } from "@marble/drizzle/schema";
 import { toCategoryPayload, withChanges } from "@marble/events";
-import { and, count, eq, ne, or, sql } from "drizzle-orm";
+import { and, asc, count, eq, ne, or, sql } from "drizzle-orm";
 import { cacheKey, createCacheClient, hashQueryParams } from "@/lib/cache";
 import { emitEvent } from "@/lib/events";
 import { requireWorkspaceId } from "@/lib/workspace";
@@ -151,14 +151,17 @@ categories.openapi(listCategoriesRoute, async (c) => {
     );
 
     // Cache count query separately (1 hour TTL, invalidated with posts)
-    const totalCategories = await cache.getOrSetCount(countCacheKey, async () => {
-      const [result] = await db
-        .select({ value: count() })
-        .from(categoryTable)
-        .where(eq(categoryTable.workspaceId, workspaceId));
+    const totalCategories = await cache.getOrSetCount(
+      countCacheKey,
+      async () => {
+        const [result] = await db
+          .select({ value: count() })
+          .from(categoryTable)
+          .where(eq(categoryTable.workspaceId, workspaceId));
 
-      return result?.value ?? 0;
-    });
+        return result?.value ?? 0;
+      }
+    );
 
     // Generate cache key for data (includes page)
     const listCacheKey = cacheKey(
@@ -200,10 +203,14 @@ categories.openapi(listCategoriesRoute, async (c) => {
         .from(categoryTable)
         .leftJoin(
           post,
-          and(eq(post.categoryId, categoryTable.id), eq(post.status, "published"))
+          and(
+            eq(post.categoryId, categoryTable.id),
+            eq(post.status, "published")
+          )
         )
         .where(eq(categoryTable.workspaceId, workspaceId))
         .groupBy(categoryTable.id)
+        .orderBy(asc(categoryTable.name), asc(categoryTable.id))
         .limit(limit)
         .offset(categoriesToSkip)
     );
@@ -259,7 +266,10 @@ categories.openapi(getCategoryRoute, async (c) => {
         .from(categoryTable)
         .leftJoin(
           post,
-          and(eq(post.categoryId, categoryTable.id), eq(post.status, "published"))
+          and(
+            eq(post.categoryId, categoryTable.id),
+            eq(post.status, "published")
+          )
         )
         .where(
           and(
@@ -479,10 +489,7 @@ categories.openapi(updateCategoryRoute, async (c) => {
     const existingCategory = await db.query.category.findFirst({
       where: and(
         eq(categoryTable.workspaceId, workspaceId),
-        or(
-          eq(categoryTable.id, identifier),
-          eq(categoryTable.slug, identifier)
-        )
+        or(eq(categoryTable.id, identifier), eq(categoryTable.slug, identifier))
       ),
     });
 
@@ -595,10 +602,7 @@ categories.openapi(deleteCategoryRoute, async (c) => {
     const existingCategory = await db.query.category.findFirst({
       where: and(
         eq(categoryTable.workspaceId, workspaceId),
-        or(
-          eq(categoryTable.id, identifier),
-          eq(categoryTable.slug, identifier)
-        )
+        or(eq(categoryTable.id, identifier), eq(categoryTable.slug, identifier))
       ),
     });
 
