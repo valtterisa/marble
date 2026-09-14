@@ -10,12 +10,17 @@ import PageLoader from "@/components/shared/page-loader";
 import { useWorkspaceId } from "@/hooks/use-workspace-id";
 import { QUERY_KEYS } from "@/lib/queries/keys";
 import { useWorkspace } from "@/providers/workspace";
-import type { UsageDashboardData } from "@/types/dashboard";
+import type {
+  PublishingMetricsData,
+  UsageDashboardData,
+} from "@/types/dashboard";
 
 export default function PageClient({
   initialUsage,
+  initialPublishing,
 }: {
   initialUsage?: UsageDashboardData;
+  initialPublishing?: PublishingMetricsData;
 }) {
   const workspaceId = useWorkspaceId();
   const { isFetchingWorkspace } = useWorkspace();
@@ -33,14 +38,15 @@ export default function PageClient({
     },
     enabled: Boolean(workspaceId) && !isFetchingWorkspace,
     initialData: initialUsage,
+    initialDataUpdatedAt: initialUsage ? Date.now() : undefined,
     staleTime: 1000 * 60 * 10,
   });
 
-  if (isFetchingWorkspace || !workspaceId || isPending) {
+  if (isFetchingWorkspace || !workspaceId || (isPending && !initialUsage)) {
     return <PageLoader />;
   }
 
-  if (isError) {
+  if (isError && !data) {
     return (
       <div className="text-muted-foreground text-sm">
         Unable to load dashboard metrics right now.
@@ -51,12 +57,15 @@ export default function PageClient({
   return (
     <DashboardBody className="flex flex-col gap-8 pt-10 pb-16" size="compact">
       <div className="flex w-full flex-col gap-6 md:grid md:gap-x-10 md:gap-y-8">
-        <ApiUsageCard data={data?.api} isLoading={isPending} />
+        <ApiUsageCard data={data?.api} isLoading={isPending && !data} />
         <div className="flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:gap-8">
-          <WebhookUsageCard data={data?.webhooks} isLoading={isPending} />
-          <MediaUsageCard data={data?.media} isLoading={isPending} />
+          <WebhookUsageCard
+            data={data?.webhooks}
+            isLoading={isPending && !data}
+          />
+          <MediaUsageCard data={data?.media} isLoading={isPending && !data} />
         </div>
-        <PublishingActivityCard />
+        <PublishingActivityCard initialData={initialPublishing} />
       </div>
     </DashboardBody>
   );

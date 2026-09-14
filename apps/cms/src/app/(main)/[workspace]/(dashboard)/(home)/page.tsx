@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { getPublishingMetrics } from "@/lib/queries/dashboard/publishing";
 import { getDashboardUsageMetrics } from "@/lib/queries/dashboard/usage";
 import { getDashboardWorkspaceId } from "@/lib/queries/dashboard/workspace";
 import PageClient from "./page-client";
@@ -15,8 +16,14 @@ async function Page({ params }: { params: Promise<{ workspace: string }> }) {
     notFound();
   }
 
-  const usage = await getDashboardUsageMetrics(workspaceId);
-  return <PageClient initialUsage={usage} />;
+  const [usage, publishing] = await Promise.all([
+    getDashboardUsageMetrics(workspaceId),
+    getPublishingMetrics(workspaceId),
+  ]);
+
+  return (
+    <PageClient initialPublishing={publishing} initialUsage={usage} />
+  );
 }
 
 export default Page;

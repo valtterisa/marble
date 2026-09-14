@@ -1,5 +1,29 @@
 import type { PlanType } from "@/lib/plans";
 
+export interface WorkspaceMember {
+  id: string;
+  role: string | null;
+  organizationId: string;
+  createdAt: Date | string;
+  userId: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export interface WorkspaceInvitation {
+  id: string;
+  email: string;
+  role: string | null;
+  status: string;
+  organizationId: string;
+  inviterId: string;
+  expiresAt: Date | string;
+}
+
 export interface Workspace {
   id: string;
   name: string;
@@ -8,28 +32,8 @@ export interface Workspace {
   timezone: string | null;
   createdAt: Date | string;
   currentUserRole: string | null;
-  members: Array<{
-    id: string;
-    role: string | null;
-    organizationId: string;
-    createdAt: Date | string;
-    userId: string;
-    user: {
-      id: string;
-      name: string | null;
-      email: string;
-      image: string | null;
-    };
-  }>;
-  invitations?: Array<{
-    id: string;
-    email: string;
-    role: string | null;
-    status: string;
-    organizationId: string;
-    inviterId: string;
-    expiresAt: Date | string;
-  }>;
+  members?: WorkspaceMember[];
+  invitations?: WorkspaceInvitation[];
   subscription: {
     id: string;
     status: string;

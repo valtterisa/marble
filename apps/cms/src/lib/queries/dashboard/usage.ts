@@ -3,10 +3,35 @@ import "server-only";
 import { db } from "@marble/db";
 import { media, usageEvent } from "@marble/db/schema";
 import { addDays, format, startOfDay, subDays, subHours } from "date-fns";
-import { and, count, desc, eq, gte, isNotNull, lt } from "drizzle-orm";
+import { and, count, desc, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
 import type { UsageDashboardData } from "@/types/dashboard";
 
 const CHART_DAYS = 30;
+
+function buildChartSeries(
+  chartStart: Date,
+  rows: Array<{ day: string | Date; value: number }>
+) {
+  const chartBuckets = new Map<string, number>();
+  for (let i = 0; i < CHART_DAYS; i += 1) {
+    const date = addDays(chartStart, i);
+    chartBuckets.set(format(date, "yyyy-MM-dd"), 0);
+  }
+
+  for (const row of rows) {
+    const key =
+      typeof row.day === "string"
+        ? row.day.slice(0, 10)
+        : format(startOfDay(row.day), "yyyy-MM-dd");
+    chartBuckets.set(key, Number(row.value));
+  }
+
+  return Array.from(chartBuckets.entries()).map(([dateKey, chartCount]) => ({
+    date: dateKey,
+    label: format(new Date(`${dateKey}T00:00:00`), "MMM d"),
+    value: chartCount,
+  }));
+}
 
 export async function getDashboardUsageMetrics(
   workspaceId: string
@@ -15,85 +40,56 @@ export async function getDashboardUsageMetrics(
   const today = startOfDay(now);
   const chartStart = subDays(today, CHART_DAYS - 1);
   const previousPeriodStart = subDays(chartStart, CHART_DAYS);
+  const dayExpression = sql<string>`to_char(date_trunc('day', ${usageEvent.createdAt}), 'YYYY-MM-DD')`;
 
-  const [apiEvents, apiPrevPeriodCountResult, apiTotalCountResult] =
-    await Promise.all([
-      db
-        .select({ createdAt: usageEvent.createdAt })
-        .from(usageEvent)
-        .where(
-          and(
-            eq(usageEvent.workspaceId, workspaceId),
-            eq(usageEvent.type, "api_request"),
-            gte(usageEvent.createdAt, chartStart)
-          )
-        ),
-      db
-        .select({ count: count() })
-        .from(usageEvent)
-        .where(
-          and(
-            eq(usageEvent.workspaceId, workspaceId),
-            eq(usageEvent.type, "api_request"),
-            gte(usageEvent.createdAt, previousPeriodStart),
-            lt(usageEvent.createdAt, chartStart)
-          )
-        ),
-      db
-        .select({ count: count() })
-        .from(usageEvent)
-        .where(
-          and(
-            eq(usageEvent.workspaceId, workspaceId),
-            eq(usageEvent.type, "api_request")
-          )
-        ),
-    ]);
-
-  const apiPrevPeriodCount = apiPrevPeriodCountResult[0]?.count ?? 0;
-  const apiTotalCount = apiTotalCountResult[0]?.count ?? 0;
-
-  const chartBuckets = new Map<string, number>();
-  for (let i = 0; i < CHART_DAYS; i += 1) {
-    const date = addDays(chartStart, i);
-    chartBuckets.set(format(date, "yyyy-MM-dd"), 0);
-  }
-  for (const event of apiEvents) {
-    const key = format(startOfDay(event.createdAt), "yyyy-MM-dd");
-    chartBuckets.set(key, (chartBuckets.get(key) ?? 0) + 1);
-  }
-
-  const apiChart = Array.from(chartBuckets.entries()).map(
-    ([dateKey, chartCount]) => ({
-      date: dateKey,
-      label: format(new Date(dateKey), "MMM d"),
-      value: chartCount,
-    })
-  );
-
-  const apiLastPeriodCount = apiChart.reduce(
-    (acc, curr) => acc + curr.value,
-    0
-  );
-  const apiChange =
-    apiPrevPeriodCount === 0
-      ? apiLastPeriodCount > 0
-        ? 100
-        : 0
-      : ((apiLastPeriodCount - apiPrevPeriodCount) / apiPrevPeriodCount) * 100;
-
-  const webhookChartStart = subDays(today, CHART_DAYS - 1);
   const [
+    apiDailyRows,
+    apiPrevPeriodCountResult,
+    apiTotalCountResult,
     webhookTotalResult,
     webhookWeekResult,
     webhookDayResult,
     webhookTopEndpoint,
-    webhookEvents,
+    webhookDailyRows,
     mediaTotalsResult,
     mediaLast30Result,
     mediaLastUpload,
     recentMediaUploads,
   ] = await Promise.all([
+    db
+      .select({
+        day: dayExpression,
+        value: count(),
+      })
+      .from(usageEvent)
+      .where(
+        and(
+          eq(usageEvent.workspaceId, workspaceId),
+          eq(usageEvent.type, "api_request"),
+          gte(usageEvent.createdAt, chartStart)
+        )
+      )
+      .groupBy(dayExpression),
+    db
+      .select({ count: count() })
+      .from(usageEvent)
+      .where(
+        and(
+          eq(usageEvent.workspaceId, workspaceId),
+          eq(usageEvent.type, "api_request"),
+          gte(usageEvent.createdAt, previousPeriodStart),
+          lt(usageEvent.createdAt, chartStart)
+        )
+      ),
+    db
+      .select({ count: count() })
+      .from(usageEvent)
+      .where(
+        and(
+          eq(usageEvent.workspaceId, workspaceId),
+          eq(usageEvent.type, "api_request")
+        )
+      ),
     db
       .select({ count: count() })
       .from(usageEvent)
@@ -140,15 +136,19 @@ export async function getDashboardUsageMetrics(
       .orderBy(desc(count()))
       .limit(1),
     db
-      .select({ createdAt: usageEvent.createdAt })
+      .select({
+        day: dayExpression,
+        value: count(),
+      })
       .from(usageEvent)
       .where(
         and(
           eq(usageEvent.workspaceId, workspaceId),
           eq(usageEvent.type, "webhook_delivery"),
-          gte(usageEvent.createdAt, webhookChartStart)
+          gte(usageEvent.createdAt, chartStart)
         )
-      ),
+      )
+      .groupBy(dayExpression),
     db
       .select({ count: count() })
       .from(usageEvent)
@@ -197,29 +197,27 @@ export async function getDashboardUsageMetrics(
       .limit(10),
   ]);
 
+  const apiPrevPeriodCount = apiPrevPeriodCountResult[0]?.count ?? 0;
+  const apiTotalCount = apiTotalCountResult[0]?.count ?? 0;
   const webhookTotal = webhookTotalResult[0]?.count ?? 0;
   const webhookWeek = webhookWeekResult[0]?.count ?? 0;
   const webhookDay = webhookDayResult[0]?.count ?? 0;
   const mediaTotals = mediaTotalsResult[0]?.count ?? 0;
   const mediaLast30 = mediaLast30Result[0]?.count ?? 0;
 
-  const webhookChartBuckets = new Map<string, number>();
-  for (let i = 0; i < CHART_DAYS; i += 1) {
-    const date = addDays(webhookChartStart, i);
-    webhookChartBuckets.set(format(date, "yyyy-MM-dd"), 0);
-  }
-  for (const event of webhookEvents) {
-    const key = format(startOfDay(event.createdAt), "yyyy-MM-dd");
-    webhookChartBuckets.set(key, (webhookChartBuckets.get(key) ?? 0) + 1);
-  }
+  const apiChart = buildChartSeries(chartStart, apiDailyRows);
+  const webhookChart = buildChartSeries(chartStart, webhookDailyRows);
 
-  const webhookChart = Array.from(webhookChartBuckets.entries()).map(
-    ([dateKey, chartCount]) => ({
-      date: dateKey,
-      label: format(new Date(dateKey), "MMM d"),
-      value: chartCount,
-    })
+  const apiLastPeriodCount = apiChart.reduce(
+    (acc, curr) => acc + curr.value,
+    0
   );
+  const apiChange =
+    apiPrevPeriodCount === 0
+      ? apiLastPeriodCount > 0
+        ? 100
+        : 0
+      : ((apiLastPeriodCount - apiPrevPeriodCount) / apiPrevPeriodCount) * 100;
 
   return {
     api: {

@@ -74,13 +74,14 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {process.env.NODE_ENV === "development" && (
-          <Script
-            crossOrigin="anonymous"
-            src="//unpkg.com/react-scan/dist/auto.global.js"
-            strategy="beforeInteractive"
-          />
-        )}
+        {process.env.NODE_ENV === "development" &&
+          process.env.NEXT_PUBLIC_REACT_SCAN === "1" && (
+            <Script
+              crossOrigin="anonymous"
+              src="//unpkg.com/react-scan/dist/auto.global.js"
+              strategy="beforeInteractive"
+            />
+          )}
       </head>
       <DatabuddyAnalytics />
       <body className={`${fontSans.className} font-sans antialiased`}>

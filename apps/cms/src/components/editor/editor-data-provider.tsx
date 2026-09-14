@@ -146,26 +146,30 @@ async function fetchEditorBootstrap(
 export function EditorDataProvider({
   children,
   postId,
+  initialBootstrap,
 }: {
   children: React.ReactNode;
   postId?: string;
+  initialBootstrap?: EditorBootstrap;
 }) {
   const router = useRouter();
   const params = useParams<{ workspace: string }>();
   const queryClient = useQueryClient();
   const mode: EditorMode = postId ? "update" : "create";
-  const [hasHydrated, setHasHydrated] = useState(false);
-  const didInitialize = useRef(false);
+  const [hasHydrated, setHasHydrated] = useState(Boolean(initialBootstrap));
+  const didInitialize = useRef(Boolean(initialBootstrap));
 
   const form = useForm<PostEditorValues>({
     resolver: zodResolver(postEditorSchema) as Resolver<PostEditorValues>,
-    defaultValues: buildEditorValues([]),
+    defaultValues: initialBootstrap?.values ?? buildEditorValues([]),
   });
 
   const bootstrapQuery = useQuery({
     queryKey: ["editor-bootstrap", params.workspace, postId ?? "new"],
     staleTime: 1000 * 60 * 5,
     queryFn: () => fetchEditorBootstrap(postId),
+    initialData: initialBootstrap,
+    initialDataUpdatedAt: initialBootstrap ? Date.now() : undefined,
   });
 
   useEffect(() => {
@@ -324,15 +328,14 @@ export function EditorDataProvider({
       fieldDefinitions,
       form,
       hasUnsavedChanges: form.formState.isDirty,
-      isReady: bootstrapQuery.isSuccess && hasHydrated,
+      isReady: Boolean(bootstrapQuery.data) && hasHydrated,
       isSubmitting: createMutation.isPending || updateMutation.isPending,
       mode,
       postId,
       submit,
     };
   }, [
-    bootstrapQuery.data?.fields,
-    bootstrapQuery.isSuccess,
+    bootstrapQuery.data,
     createMutation.isPending,
     form,
     form.formState.isDirty,
@@ -343,7 +346,11 @@ export function EditorDataProvider({
     updateMutation.isPending,
   ]);
 
-  if (bootstrapQuery.isLoading || (bootstrapQuery.isSuccess && !hasHydrated)) {
+  if (!bootstrapQuery.data && bootstrapQuery.isLoading) {
+    return <PageLoader />;
+  }
+
+  if (bootstrapQuery.isSuccess && !hasHydrated) {
     return <PageLoader />;
   }
 

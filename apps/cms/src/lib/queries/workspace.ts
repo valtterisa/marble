@@ -2,9 +2,9 @@ import { db } from "@marble/db";
 import { member, subscription, workspace } from "@marble/db/schema";
 import { and, desc, eq, gt, or } from "drizzle-orm";
 import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { getServerSession } from "@/lib/auth/session";
+import { getActiveOrganizationId, getServerSession } from "@/lib/auth/session";
 import { getWorkspacePlan } from "@/lib/plans";
-import type { Workspace } from "@/types/workspace";
+import type { Workspace, WorkspaceInvitation, WorkspaceMember } from "@/types/workspace";
 import { getLastVisitedWorkspace } from "@/utils/workspace/client";
 
 /**
@@ -98,13 +98,25 @@ export async function getInitialWorkspaceData(
   return data?.workspace ?? null;
 }
 
+function activeSubscriptionFilter() {
+  return or(
+    eq(subscription.status, "active"),
+    eq(subscription.status, "trialing"),
+    and(
+      eq(subscription.status, "canceled"),
+      eq(subscription.cancelAtPeriodEnd, true),
+      gt(subscription.currentPeriodEnd, new Date())
+    )
+  );
+}
+
 export async function getWorkspaceLayoutData(workspaceSlug?: string): Promise<{
   activeOrganizationId: string | null;
   workspace: Workspace | null;
 } | null> {
   try {
     const session = await getServerSession();
-    const activeOrganizationId = session?.session?.activeOrganizationId ?? null;
+    const activeOrganizationId = getActiveOrganizationId(session?.session);
 
     if (!session?.user || (!activeOrganizationId && !workspaceSlug)) {
       return null;
@@ -124,6 +136,80 @@ export async function getWorkspaceLayoutData(workspaceSlug?: string): Promise<{
         timezone: true,
         createdAt: true,
       },
+      with: {
+        members: {
+          where: eq(member.userId, session.user.id),
+          columns: {
+            id: true,
+            role: true,
+            userId: true,
+            organizationId: true,
+            createdAt: true,
+          },
+          limit: 1,
+        },
+        subscriptions: {
+          where: activeSubscriptionFilter(),
+          orderBy: desc(subscription.createdAt),
+          limit: 1,
+          columns: {
+            id: true,
+            status: true,
+            plan: true,
+            currentPeriodStart: true,
+            currentPeriodEnd: true,
+            cancelAtPeriodEnd: true,
+            canceledAt: true,
+          },
+        },
+      },
+    });
+
+    if (!foundWorkspace) {
+      return { activeOrganizationId, workspace: null };
+    }
+
+    const currentUserMember = foundWorkspace.members.at(0);
+
+    if (!currentUserMember) {
+      return { activeOrganizationId, workspace: null };
+    }
+
+    const activeSubscription = foundWorkspace.subscriptions.at(0) || null;
+    const activePlan = getWorkspacePlan(activeSubscription);
+
+    return {
+      activeOrganizationId,
+      workspace: {
+        id: foundWorkspace.id,
+        name: foundWorkspace.name,
+        slug: foundWorkspace.slug,
+        logo: foundWorkspace.logo,
+        timezone: foundWorkspace.timezone,
+        createdAt: foundWorkspace.createdAt,
+        currentUserRole: currentUserMember.role || null,
+        subscription: activeSubscription
+          ? {
+              ...activeSubscription,
+              activePlan,
+            }
+          : null,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching initial workspace data:", error);
+    return null;
+  }
+}
+
+export async function getWorkspaceTeamData(workspaceId: string): Promise<{
+  members: WorkspaceMember[];
+  invitations: WorkspaceInvitation[];
+} | null> {
+  try {
+    const foundWorkspace = await db.query.workspace.findFirst({
+      where: eq(workspace.id, workspaceId),
+      columns: { id: true },
       with: {
         members: {
           columns: {
@@ -150,61 +236,19 @@ export async function getWorkspaceLayoutData(workspaceSlug?: string): Promise<{
             expiresAt: true,
           },
         },
-        subscriptions: {
-          where: or(
-            eq(subscription.status, "active"),
-            eq(subscription.status, "trialing"),
-            and(
-              eq(subscription.status, "canceled"),
-              eq(subscription.cancelAtPeriodEnd, true),
-              gt(subscription.currentPeriodEnd, new Date())
-            )
-          ),
-          orderBy: desc(subscription.createdAt),
-          limit: 1,
-          columns: {
-            id: true,
-            status: true,
-            plan: true,
-            currentPeriodStart: true,
-            currentPeriodEnd: true,
-            cancelAtPeriodEnd: true,
-            canceledAt: true,
-          },
-        },
       },
     });
 
     if (!foundWorkspace) {
-      return { activeOrganizationId, workspace: null };
+      return null;
     }
-
-    const currentUserMember = foundWorkspace.members.find(
-      (entry) => entry.userId === session.user.id
-    );
-
-    if (!currentUserMember) {
-      return { activeOrganizationId, workspace: null };
-    }
-
-    const activeSubscription = foundWorkspace.subscriptions.at(0) || null;
-    const activePlan = getWorkspacePlan(activeSubscription);
 
     return {
-      activeOrganizationId,
-      workspace: {
-        ...foundWorkspace,
-        currentUserRole: currentUserMember.role || null,
-        subscription: activeSubscription
-          ? {
-              ...activeSubscription,
-              activePlan,
-            }
-          : null,
-      } as Workspace,
+      members: foundWorkspace.members,
+      invitations: foundWorkspace.invitations,
     };
   } catch (error) {
-    console.error("Error fetching initial workspace data:", error);
+    console.error("Error fetching workspace team data:", error);
     return null;
   }
 }

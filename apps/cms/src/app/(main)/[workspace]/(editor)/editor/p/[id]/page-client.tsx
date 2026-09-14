@@ -1,14 +1,18 @@
 "use client";
 
-import { useParams } from "next/navigation";
 import { EditorDataProvider } from "@/components/editor/editor-data-provider";
 import EditorPage from "@/components/editor/editor-page";
+import type { EditorBootstrap } from "@/lib/queries/dashboard/editor";
 
-function PageClient() {
-  const params = useParams<{ id: string }>();
-
+function PageClient({
+  postId,
+  initialBootstrap,
+}: {
+  postId: string;
+  initialBootstrap: EditorBootstrap;
+}) {
   return (
-    <EditorDataProvider postId={params.id}>
+    <EditorDataProvider initialBootstrap={initialBootstrap} postId={postId}>
       <EditorPage />
     </EditorDataProvider>
   );

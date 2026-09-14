@@ -1,19 +1,12 @@
-import { betterFetch } from "@better-fetch/fetch";
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
-import type { Session } from "./lib/auth/types";
+import { auth } from "./lib/auth/server";
 import { getLastActiveWorkspaceOrNewOneToSetAsActive } from "./lib/queries/workspace";
 
 export async function proxy(request: NextRequest) {
-  const { data: session } = await betterFetch<Session>(
-    "/api/auth/get-session",
-    {
-      baseURL: request.nextUrl.origin,
-      headers: {
-        cookie: request.headers.get("cookie") || "",
-      },
-    }
-  );
+  const session = await auth.api.getSession({
+    headers: request.headers,
+  });
 
   const isVerified = session?.user?.emailVerified;
   const path = request.nextUrl.pathname;
@@ -51,14 +44,13 @@ export async function proxy(request: NextRequest) {
   }
 
   // User is logged in but not verified
-  if (session && !isVerified) {
+  if (!isVerified) {
     // Allow only verify page for unverified users
     if (isVerifyPage) {
       return NextResponse.next();
     }
 
     const callbackUrl = encodeURIComponent(request.nextUrl.pathname);
-
     const email = session.user.email;
 
     // Redirect unverified users to verify page
@@ -71,25 +63,23 @@ export async function proxy(request: NextRequest) {
   }
 
   // User is logged in and verified
-  if (session && isVerified) {
-    // Don't redirect if already on onboarding
-    if (isOnboardingPage) {
-      return NextResponse.next();
-    }
+  // Don't redirect if already on onboarding
+  if (isOnboardingPage) {
+    return NextResponse.next();
+  }
 
-    // Redirect auth pages or root to workspace or onboarding
-    if (isAuthPage || isRootPage || isVerifyPage) {
-      const workspace = await getLastActiveWorkspaceOrNewOneToSetAsActive(
-        session.user.id,
-        request.cookies
+  // Redirect auth pages or root to workspace or onboarding
+  if (isAuthPage || isRootPage || isVerifyPage) {
+    const workspace = await getLastActiveWorkspaceOrNewOneToSetAsActive(
+      session.user.id,
+      request.cookies
+    );
+    if (workspace) {
+      return NextResponse.redirect(
+        new URL(`/${workspace.slug}`, request.url)
       );
-      if (workspace) {
-        return NextResponse.redirect(
-          new URL(`/${workspace.slug}`, request.url)
-        );
-      }
-      return NextResponse.redirect(new URL("/new", request.url));
     }
+    return NextResponse.redirect(new URL("/new", request.url));
   }
 
   return NextResponse.next();

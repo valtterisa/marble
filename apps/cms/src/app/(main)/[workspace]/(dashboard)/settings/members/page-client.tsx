@@ -1,14 +1,22 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { DashboardBody } from "@/components/layout/wrapper";
 import { MembersSettingsSkeleton } from "@/components/settings/loading-skeletons";
 import { columns, type TeamMemberRow } from "@/components/team/columns";
 import { TeamDataTable } from "@/components/team/data-table";
 import { InviteSection } from "@/components/team/invite-section";
+import { useWorkspaceId } from "@/hooks/use-workspace-id";
+import { QUERY_KEYS } from "@/lib/queries/keys";
 import { useUser } from "@/providers/user";
 import { useWorkspace } from "@/providers/workspace";
+import type {
+  WorkspaceInvitation,
+  WorkspaceMember,
+} from "@/types/workspace";
+import { request } from "@/utils/fetch/client";
 
 const InviteModal = dynamic(() =>
   import("@/components/team/invite-modal").then((mod) => mod.InviteModal)
@@ -20,19 +28,45 @@ const LeaveWorkspaceModal = dynamic(() =>
   )
 );
 
-function PageClient() {
+function PageClient({
+  initialTeam,
+  workspaceSlug,
+}: {
+  initialTeam?: {
+    members: WorkspaceMember[];
+    invitations: WorkspaceInvitation[];
+  };
+  workspaceSlug: string;
+}) {
   const { user } = useUser();
   const { activeWorkspace, isFetchingWorkspace, currentUserRole } =
     useWorkspace();
+  const workspaceId = useWorkspaceId();
 
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showLeaveWorkspaceModal, setShowLeaveWorkspaceModal] = useState(false);
 
-  if (isFetchingWorkspace || !activeWorkspace || !user) {
+  const { data: team, isPending } = useQuery({
+    queryKey: workspaceId
+      ? QUERY_KEYS.TEAM(workspaceId)
+      : ["team", "disabled"],
+    queryFn: async () => {
+      const response = await request<{
+        members: WorkspaceMember[];
+        invitations: WorkspaceInvitation[];
+      }>(`workspaces/${workspaceSlug}/team`);
+      return response.data;
+    },
+    enabled: Boolean(workspaceId) && !isFetchingWorkspace,
+    initialData: initialTeam,
+    staleTime: 1000 * 60,
+  });
+
+  if (isFetchingWorkspace || !activeWorkspace || !user || isPending || !team) {
     return <MembersSettingsSkeleton />;
   }
 
-  const data: TeamMemberRow[] = activeWorkspace.members.map((member) => ({
+  const data: TeamMemberRow[] = team.members.map((member) => ({
     id: member.id,
     type: "member" as const,
     name: member.user.name || member.user.email,
@@ -58,7 +92,7 @@ function PageClient() {
           setShowLeaveWorkspaceModal={setShowLeaveWorkspaceModal}
         />
 
-        <InviteSection invitations={activeWorkspace.invitations || []} />
+        <InviteSection invitations={team.invitations || []} />
       </div>
 
       <InviteModal open={showInviteModal} setOpen={setShowInviteModal} />

@@ -11,7 +11,12 @@ const nextConfig: NextConfig = {
   ],
   reactCompiler: true,
   experimental: {
-    optimizePackageImports: ["@phosphor-icons/react"],
+    optimizePackageImports: [
+      "@phosphor-icons/react",
+      "@hugeicons/react",
+      "recharts",
+      "date-fns",
+    ],
     staleTimes: {
       dynamic: 60,
     },

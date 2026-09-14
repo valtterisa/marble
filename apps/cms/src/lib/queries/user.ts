@@ -1,53 +1,59 @@
 import { db } from "@marble/db";
 import { member, user } from "@marble/db/schema";
 import { and, eq } from "drizzle-orm";
-import { getServerSession } from "@/lib/auth/session";
+import { getActiveOrganizationId, getServerSession } from "@/lib/auth/session";
+import type { UserProfile } from "@/types/user";
 
-export async function getInitialUserData() {
+export async function getInitialUserData(): Promise<{
+  user: UserProfile | null;
+  isAuthenticated: boolean;
+}> {
   try {
     const sessionData = await getServerSession();
 
-    if (!sessionData || !sessionData.user) {
+    if (!sessionData?.user) {
       return { user: null, isAuthenticated: false };
     }
 
     const foundUser = await db.query.user.findFirst({
       where: eq(user.id, sessionData.user.id),
+      columns: {
+        id: true,
+        name: true,
+        email: true,
+        image: true,
+        emailVerified: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
 
     if (!foundUser) {
       return { user: null, isAuthenticated: false };
     }
 
-    const activeOrganizationId = sessionData.session?.activeOrganizationId;
+    const activeOrganizationId = getActiveOrganizationId(sessionData.session);
 
-    if (activeOrganizationId && typeof activeOrganizationId !== "string") {
-      console.warn(
-        "Invalid activeOrganizationId type:",
-        typeof activeOrganizationId
-      );
-      return { user: null, isAuthenticated: true };
-    }
-
-    const foundMember = activeOrganizationId
-      ? await db.query.member.findFirst({
-          where: and(
-            eq(member.organizationId, activeOrganizationId),
-            eq(member.userId, foundUser.id)
-          ),
-          with: {
-            organization: {
-              columns: {
-                id: true,
-                name: true,
-                slug: true,
+    const foundMember =
+      typeof activeOrganizationId === "string"
+        ? await db.query.member.findFirst({
+            where: and(
+              eq(member.organizationId, activeOrganizationId),
+              eq(member.userId, foundUser.id)
+            ),
+            with: {
+              organization: {
+                columns: {
+                  id: true,
+                  name: true,
+                  slug: true,
+                },
               },
             },
-          },
-        })
-      : null;
+          })
+        : null;
 
-    const userWithRole = {
+    const userWithRole: UserProfile = {
       ...foundUser,
       workspaceRole: foundMember?.role || null,
       activeWorkspace: foundMember?.organization || null,

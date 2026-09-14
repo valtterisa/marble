@@ -25,7 +25,10 @@ export async function GET() {
   }
 
   const memberRows = await db
-    .select({ organizationId: member.organizationId })
+    .select({
+      organizationId: member.organizationId,
+      role: member.role,
+    })
     .from(member)
     .where(eq(member.userId, sessionData.user.id));
 
@@ -34,6 +37,10 @@ export async function GET() {
   if (workspaceIds.length === 0) {
     return NextResponse.json([]);
   }
+
+  const roleByWorkspaceId = new Map(
+    memberRows.map((row) => [row.organizationId, row.role])
+  );
 
   const workspaces = await db.query.workspace.findMany({
     where: inArray(workspace.id, workspaceIds),
@@ -46,31 +53,6 @@ export async function GET() {
       createdAt: true,
     },
     with: {
-      members: {
-        columns: {
-          id: true,
-          role: true,
-          organizationId: true,
-          createdAt: true,
-          userId: true,
-        },
-        with: {
-          user: {
-            columns: { id: true, name: true, email: true, image: true },
-          },
-        },
-      },
-      invitations: {
-        columns: {
-          id: true,
-          email: true,
-          role: true,
-          status: true,
-          organizationId: true,
-          inviterId: true,
-          expiresAt: true,
-        },
-      },
       subscriptions: {
         where: activeSubscriptionFilter(),
         orderBy: desc(subscription.createdAt),
@@ -90,14 +72,16 @@ export async function GET() {
   });
 
   const workspacesWithRole = workspaces.map((foundWorkspace) => {
-    const currentUserMember = foundWorkspace.members.find(
-      (entry) => entry.userId === sessionData.user.id
-    );
     const activeSubscription = foundWorkspace.subscriptions.at(0) || null;
     const activePlan = getWorkspacePlan(activeSubscription);
     return {
-      ...foundWorkspace,
-      currentUserRole: currentUserMember?.role || null,
+      id: foundWorkspace.id,
+      name: foundWorkspace.name,
+      slug: foundWorkspace.slug,
+      logo: foundWorkspace.logo,
+      timezone: foundWorkspace.timezone,
+      createdAt: foundWorkspace.createdAt,
+      currentUserRole: roleByWorkspaceId.get(foundWorkspace.id) || null,
       subscription: activeSubscription
         ? {
             ...activeSubscription,

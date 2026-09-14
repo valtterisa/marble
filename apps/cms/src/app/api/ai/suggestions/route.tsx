@@ -95,9 +95,13 @@ export async function POST(request: Request) {
     }
   }
 
+  const contentHash = createContentHash(
+    parsedBody.data.content,
+    parsedBody.data.metrics
+  );
   const cacheKey = postId
-    ? `ai:suggestions:${workspaceId}:${postId}`
-    : `ai:suggestions:${workspaceId}:${createContentHash(parsedBody.data.content, parsedBody.data.metrics)}`;
+    ? `ai:suggestions:${workspaceId}:${postId}:${contentHash}`
+    : `ai:suggestions:${workspaceId}:${contentHash}`;
 
   if (!bypassCache) {
     const cached = await redis.get<string>(cacheKey);
