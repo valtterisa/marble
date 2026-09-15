@@ -2,7 +2,7 @@ import { db } from "@marble/db";
 import { member, subscription, workspace } from "@marble/db/schema";
 import { and, desc, eq, gt, or } from "drizzle-orm";
 import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
-import { getActiveOrganizationId, getServerSession } from "@/lib/auth/session";
+import { getServerSession } from "@/lib/auth/session";
 import { getWorkspacePlan } from "@/lib/plans";
 import type { Workspace, WorkspaceInvitation, WorkspaceMember } from "@/types/workspace";
 import { getLastVisitedWorkspace } from "@/utils/workspace/client";
@@ -116,7 +116,7 @@ export async function getWorkspaceLayoutData(workspaceSlug?: string): Promise<{
 } | null> {
   try {
     const session = await getServerSession();
-    const activeOrganizationId = getActiveOrganizationId(session?.session);
+    const activeOrganizationId = session?.session?.activeOrganizationId ?? null;
 
     if (!session?.user || (!activeOrganizationId && !workspaceSlug)) {
       return null;

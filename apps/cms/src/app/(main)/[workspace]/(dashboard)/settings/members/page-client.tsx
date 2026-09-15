@@ -1,7 +1,7 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
+import dynamic from "next/dynamic";
 import { useState } from "react";
 import { DashboardBody } from "@/components/layout/wrapper";
 import { MembersSettingsSkeleton } from "@/components/settings/loading-skeletons";
@@ -28,16 +28,7 @@ const LeaveWorkspaceModal = dynamic(() =>
   )
 );
 
-function PageClient({
-  initialTeam,
-  workspaceSlug,
-}: {
-  initialTeam?: {
-    members: WorkspaceMember[];
-    invitations: WorkspaceInvitation[];
-  };
-  workspaceSlug: string;
-}) {
+function PageClient({ workspaceSlug }: { workspaceSlug: string }) {
   const { user } = useUser();
   const { activeWorkspace, isFetchingWorkspace, currentUserRole } =
     useWorkspace();
@@ -58,7 +49,6 @@ function PageClient({
       return response.data;
     },
     enabled: Boolean(workspaceId) && !isFetchingWorkspace,
-    initialData: initialTeam,
     staleTime: 1000 * 60,
   });
 

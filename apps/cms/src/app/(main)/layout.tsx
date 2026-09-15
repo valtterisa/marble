@@ -1,4 +1,3 @@
-import { getInitialUserData } from "@/lib/queries/user";
 import { UserProvider } from "@/providers/user";
 
 export default async function MainLayout({
@@ -6,10 +5,8 @@ export default async function MainLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user } = await getInitialUserData();
-
   return (
-    <UserProvider initialUser={user}>
+    <UserProvider initialUser={null}>
       <div>{children}</div>
     </UserProvider>
   );

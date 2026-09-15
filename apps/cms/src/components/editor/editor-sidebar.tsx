@@ -80,7 +80,6 @@ export function EditorSidebar({ ...props }: EditorSidebarProps) {
   }, [editor]);
 
   const debouncedText = useDebounce(editorText, 1500);
-  const debouncedHTML = useDebounce(editorHTML, 1500);
 
   const metrics = useMemo(() => {
     if (!editor) {
@@ -117,7 +116,7 @@ export function EditorSidebar({ ...props }: EditorSidebarProps) {
     };
   }, [editor, debouncedText]);
 
-  const [activeTab, setActiveTab] = useState<keyof typeof tabs>("metadata");
+  const [hasFetchedAiOnce, setHasFetchedAiOnce] = useState(false);
 
   // biome-ignore lint/style/noNonNullAssertion: <>
   const workspaceId = activeWorkspace!.id;
@@ -130,17 +129,23 @@ export function EditorSidebar({ ...props }: EditorSidebarProps) {
   } = useQuery({
     queryKey: QUERY_KEYS.AI_READABILITY_SUGGESTIONS(
       workspaceId,
-      `${postId ?? "draft"}:${debouncedHTML}`
+      postId ?? "draft"
     ),
-    enabled: activeTab === "analysis" && debouncedHTML.trim().length > 0,
-    staleTime: Number.POSITIVE_INFINITY,
-    refetchOnMount: false,
+    enabled: editorHTML.trim().length > 0,
+    staleTime: 5 * 60 * 1000,
     refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
     retry: 0,
     queryFn: async () => {
       const result = await fetchAiReadabilitySuggestionsObject({
-        content: debouncedHTML,
-        metrics,
+        content: editorHTML,
+        metrics: {
+          wordCount: metrics.wordCount,
+          sentenceCount: metrics.sentenceCount,
+          wordsPerSentence: metrics.wordsPerSentence,
+          readabilityScore: metrics.readabilityScore,
+          readingTime: metrics.readingTime,
+        },
         postId,
         bypassCache: bypassCacheRef.current,
       });
@@ -148,6 +153,20 @@ export function EditorSidebar({ ...props }: EditorSidebarProps) {
       return result;
     },
   });
+
+  const [activeTab, setActiveTab] = useState<keyof typeof tabs>("metadata");
+
+  useEffect(() => {
+    if (
+      activeTab === "analysis" &&
+      !!workspaceId &&
+      !hasFetchedAiOnce &&
+      editorHTML.trim().length > 0
+    ) {
+      refetchAi();
+      setHasFetchedAiOnce(true);
+    }
+  }, [activeTab, workspaceId, hasFetchedAiOnce, editorHTML, refetchAi]);
 
   const handleRefreshAi = () => {
     bypassCacheRef.current = true;

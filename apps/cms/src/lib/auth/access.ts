@@ -2,7 +2,7 @@ import { db } from "@marble/db";
 import { member, workspace } from "@marble/db/schema";
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
-import { getActiveOrganizationId, getServerSession } from "./session";
+import { getServerSession } from "./session";
 
 /**
  * Requires access to the workspace currently stored in the Better Auth session.
@@ -13,7 +13,7 @@ import { getActiveOrganizationId, getServerSession } from "./session";
 export async function requireActiveWorkspaceAccess() {
   try {
     const sessionData = await getServerSession();
-    const workspaceId = getActiveOrganizationId(sessionData?.session);
+    const workspaceId = sessionData?.session.activeOrganizationId;
 
     if (!sessionData || !workspaceId) {
       return {

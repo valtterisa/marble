@@ -40,8 +40,6 @@ export function UserProvider({ children, initialUser }: UserProviderProps) {
     queryKey: QUERY_KEYS.USER,
     queryFn: fetchCurrentUser,
     enabled: isAuthenticated && !isSessionPending,
-    initialData: initialUser ?? undefined,
-    initialDataUpdatedAt: initialUser ? Date.now() : undefined,
     staleTime: 60 * 60 * 1000, // 1 hour
     gcTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,

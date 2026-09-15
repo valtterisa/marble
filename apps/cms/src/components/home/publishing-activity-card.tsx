@@ -30,11 +30,7 @@ import type { PublishingMetricsData } from "@/types/dashboard";
 
 const numberFormatter = new Intl.NumberFormat("en-US");
 
-export const PublishingActivityCard = ({
-  initialData,
-}: {
-  initialData?: PublishingMetricsData;
-}) => {
+export const PublishingActivityCard = () => {
   const workspaceId = useWorkspaceId();
   const { isFetchingWorkspace } = useWorkspace();
 
@@ -50,16 +46,9 @@ export const PublishingActivityCard = ({
       return response.json();
     },
     enabled: Boolean(workspaceId) && !isFetchingWorkspace,
-    initialData,
-    initialDataUpdatedAt: initialData ? Date.now() : undefined,
-    staleTime: 1000 * 60 * 10,
   });
 
-  if (
-    isFetchingWorkspace ||
-    !workspaceId ||
-    (isPending && !initialData && !metrics)
-  ) {
+  if (isFetchingWorkspace || !workspaceId || isPending) {
     return (
       <Card className="rounded-[20px] border-none bg-surface p-2.5">
         <CardHeader className="gap-0 px-4 pt-4">

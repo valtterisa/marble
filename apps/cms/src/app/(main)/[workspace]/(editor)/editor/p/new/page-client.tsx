@@ -2,15 +2,10 @@
 
 import { EditorDataProvider } from "@/components/editor/editor-data-provider";
 import EditorPage from "@/components/editor/editor-page";
-import type { EditorBootstrap } from "@/lib/queries/dashboard/editor";
 
-function NewPostPageClient({
-  initialBootstrap,
-}: {
-  initialBootstrap: EditorBootstrap;
-}) {
+function NewPostPageClient() {
   return (
-    <EditorDataProvider initialBootstrap={initialBootstrap}>
+    <EditorDataProvider>
       <EditorPage />
     </EditorDataProvider>
   );
